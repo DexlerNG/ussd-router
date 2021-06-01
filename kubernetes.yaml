@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ussd-router
+  labels:
+    app: ussd-router
+  annotations:
+    service.beta.kubernetes.io/do-loadbalancer-algorithm: "least_connections"
+
+spec:
+  selector:
+    app: ussd-router
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+      name: http
+  type: ClusterIP
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ussd-router
+  labels:
+    app: ussd-router
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: ussd-router
+  template:
+    metadata:
+      labels:
+        app: ussd-router
+    spec:
+      imagePullSecrets:
+        - name: docker
+      containers:
+        - name: ussd-router
+          image: {{image}}
+          imagePullPolicy: Always
+          env:
+            - name: APP_NAME
+              value: ussd-router
+          ports:
+            - containerPort: 80
+              protocol: TCP
