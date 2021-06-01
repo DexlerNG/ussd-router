@@ -15,19 +15,19 @@ services:
     networks:
       - app-network
 
-  subscription-billing-engine:
-    image: blavkhades/subscription-billing-engine:no-queue
+  ussd-router:
+    image: blavkhades/ussd-router:development
     tty: true
     ports:
-      - "7000:80"
+      - "7001:80"
     environment:
-      APP_NAME: subscription-billing-engine
+      APP_NAME: ussd-router
       APP_ENV: sandbox
       PORT: 80
       REDIS_HOST: 194.99.21.28
       REDIS_PORT: 6378
       REDIS_PASSWORD: Kodobe247?
-      RABBITMQ_URL: "amqp://guest:guest@194.99.21.28:5672/sandbox"
+      EXCHANGE_ENDPOINT_USSD_BASE_URL: http://localhost:8082
   networks:
     - app-network
 

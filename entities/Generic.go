@@ -32,17 +32,17 @@ type GenericChargeResponse struct {
 	Data      interface{} `json:"meta"`
 }
 
-type GenericDataSyncPayload struct {
-	Provider  string `json:"provider"`
-	SpId      string `json:"spId"`
-	ServiceId string `json:"serviceId"`
-	ProductId string `json:"productId"`
-	Msisdn    string `json:"msisdn"`
-	Reference string `json:"reference"`
-	Validity  uint   `json:"validity"`
-	AutoRenew bool   `json:"autoRenew"`
-	Mode      string `json:"mode"`
-	StartTime uint   `json:"startTime"`
-	EndTime   uint   `json:"endTime"`
-	Meta      []Item `json:"meta"`
+type GenericUSSDReceivePayload struct {
+	Provider      string `json:"provider"`
+	MessageType   string `json:"messageType"`
+	SpId          string `json:"spId"`
+	ServiceId     string `json:"serviceId"`
+	SessionId     string `json:"sessionId"`
+	Msisdn        string `json:"msisdn"`
+	Reference     string `json:"reference"`
+	AccessCode    string `json:"accessCode"`
+	USSDString    string `json:"ussdString"`
+	Timestamp     string `json:"timestamp"`
+	OperationType string `json:"operationType"`
+	CodeScheme    string `json:"codeScheme"`
 }
