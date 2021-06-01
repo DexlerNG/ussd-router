@@ -10,6 +10,7 @@ import (
 	"ussd-router/controllers"
 	"ussd-router/controllers/configuration"
 	"ussd-router/controllers/receive"
+	"ussd-router/controllers/send"
 	"ussd-router/utils"
 )
 
@@ -75,7 +76,7 @@ func main() {
 	authorisedRoute.POST("/routing-configurations/:provider", configuration.SaveConfigurationHandler)
 	//authorisedRoute.DELETE("/receive-configurations/:provider/:accessCode", configuration.SaveConfigurationHandler)
 	authorisedRoute.Any("/receive/:provider", receive.USSDReceiveHandler)
-	//authorisedRoute.Any("/send/:provider", receive.RouteUSSDSendHandler)
+	authorisedRoute.Any("/send/:provider", send.USSDSendHandler)
 
 
 	//authorisedRoute.POST("/charge/:provider/authorization-callback", charge.AuthorizationCallbackHandler)

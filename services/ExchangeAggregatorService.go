@@ -38,3 +38,29 @@ func ExchangeAggregatorRegisterUSSDEndpoint(URL string, body []byte) (error, *[]
 	//tto test the response
 	return nil, &body
 }
+
+
+func ExchangeAggregatorSendUSSD(URL string, body []byte) (error, *[]byte) {
+	//add //authorizationService/services/authorization
+	//reqURL, _ := url.Parse(URL)
+	reqURL, _ := url.Parse(URL + "/SendUssdService/services/SendUssd")
+	soapReq.URL = reqURL
+	soapReq.Method = "POST"
+	soapReq.Body = ioutil.NopCloser(bytes.NewReader(body))
+	resp, err := http.DefaultClient.Do(soapReq)
+	if err != nil {
+		// handle error
+		fmt.Println("Unmarshal Error: ", err.Error())
+		return err, nil
+	}
+	defer resp.Body.Close()
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		//call slack and drop Message
+		fmt.Println("Unmarshal Error: ", err.Error())
+		return err, nil
+	}
+	fmt.Println("Response Body: ", string(body))
+	//tto test the response
+	return nil, &body
+}

@@ -14,19 +14,16 @@ import (
 	"ussd-router/services"
 )
 
-var channelMap = map[string]string{
-	"sms":  "2",
-	"ussd": "3",
-}
-
 type ExchangeConfiguration struct {
-	SpId        string `json:"spId"`
-	SpPassword  string `json:"spPassword"`
-	ServiceId   string `json:"serviceId"`
-	Provider    string `json:"provider"`
-	ProductName string `json:"productName"`
-	AccessCode  string `json:"accessCode"`
-	CallbackURL string `json:"callbackURL"`
+	SpId             string `json:"spId"`
+	SpPassword       string `json:"spPassword"`
+	ServiceId        string `json:"serviceId"`
+	Provider         string `json:"provider"`
+	ProductName      string `json:"productName"`
+	AccessCode       string `json:"accessCode"`
+	CallbackURL      string `json:"callbackURL"`
+	ConfigurationURL string `json:"configurationURL"`
+	SendUSSDURL      string `json:"sendUSSDURL"`
 }
 
 func (request *ExchangeConfiguration) Validate() error {
@@ -60,7 +57,7 @@ func (request *ExchangeConfiguration) Process() error {
 		XmlNS:   "http://schemas.xmlsoap.org/soap/envelope/",
 		Header: exchange.SUDHeader{
 			RequestSOAPHeader: exchange.SUDRequestHeader{
-				XmlNS: "http://www.huawei.com.cn/schema/common/v2_1",
+				XmlNS:      "http://www.huawei.com.cn/schema/common/v2_1",
 				SpId:       request.SpId,
 				SpPassword: md5Value,
 				TimeStamp:  timestamp,
@@ -70,12 +67,12 @@ func (request *ExchangeConfiguration) Process() error {
 		Body: exchange.SUDBody{
 			SUDBodyStartUSSDNotification: exchange.SUDBodyStartUSSDNotification{
 				Reference: exchange.SUDBodyStartUSSDNotificationReference{
-					Endpoint: os.Getenv("APP_PROXY_BASE_URL") + "/v1/receive/exchange",
+					Endpoint:      os.Getenv("APP_PROXY_BASE_URL") + "/v1/receive/exchange",
 					InterfaceName: request.ProductName,
-					Correlator: request.AccessCode,
+					Correlator:    request.AccessCode,
 				},
 				USSDServiceActivationNumber: request.AccessCode,
-				Criteria: request.AccessCode,
+				Criteria:                    request.AccessCode,
 			},
 		},
 	}
