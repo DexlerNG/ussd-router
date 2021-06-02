@@ -6,7 +6,7 @@ type USSDReceiveNotifyUSSDReceptionBody struct {
 	SenderCB    string ` xml:"senderCB"`
 	ReceiveCB   string ` xml:"receiveCB"`
 	UssdOpType  string `xml:"ussdOpType"`
-	Msisdn      string `xml:"msisdn"`
+	Msisdn      string `xml:"msIsdn"`
 	ServiceCode string `xml:"serviceCode"`
 	CodeScheme  string `xml:"codeScheme"`
 	USSDString  string `xml:"ussdString"`
