@@ -91,7 +91,7 @@ pipelines:
           script: # Modify the commands below to build your repository.
 
 #            - export IMAGE_NAME=$DOCKER_IMAGE_NAME:$BITBUCKET_COMMIT
-            - export IMAGE_NAME=$DOCKER_IMAGE_NAME:development
+            - export IMAGE_NAME=$DOCKER_IMAGE_NAME:$BITBUCKET_COMMIT
             - docker login --username $DOCKER_HUB_USERNAME --password $DOCKER_HUB_PASSWORD
             # build the Docker image (this will use the Dockerfile in the root of the repo)
             - docker build -t $IMAGE_NAME .

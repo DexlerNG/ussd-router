@@ -9,7 +9,7 @@ type USSDSendUSSDBody struct {
 	SenderCB    string ` xml:"loc:senderCB"`
 	ReceiveCB   string ` xml:"loc:receiveCB"`
 	UssdOpType  string `xml:"loc:ussdOpType"`
-	Msisdn      string `xml:"loc:msisdn"`
+	Msisdn      string `xml:"loc:msIsdn"`
 	ServiceCode string `xml:"loc:serviceCode"`
 	CodeScheme  string `xml:"loc:codeScheme"`
 	USSDString  string `xml:"loc:ussdString"`
