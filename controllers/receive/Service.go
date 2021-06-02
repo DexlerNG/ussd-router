@@ -19,7 +19,7 @@ func GetUSSDReceiveProvider(provider string) USSDReceiveInterface {
 	return providersMapping[provider]
 }
 
-func MakeHTTPCallToURL(URL string, payload *entities.GenericUSSDReceivePayload) (error, []byte) {
+func MakeHTTPCallToURL(URL string, payload *entities.GenericUSSDReceivePayload) {
 	var req = &http.Request{
 		Header: map[string][]string{
 			"Content-Type": {"application/json; charset=utf-8"},
@@ -35,18 +35,18 @@ func MakeHTTPCallToURL(URL string, payload *entities.GenericUSSDReceivePayload) 
 	if err != nil {
 		// handle error
 		fmt.Println("Unmarshal Error: ", err.Error())
-		return err, nil
+		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		//call slack and drop Message
 		fmt.Println("Unmarshal Error: ", err.Error())
-		return err, nil
+		return
 	}
 	//tto test the response
 
 	fmt.Println("Response Body: ", string(body))
 	//fmt.Println("ExchangeAuthorizationResponse", response.Body.Authorization.Result.ResultDescription)
-	return nil, body
+	return
 }

@@ -30,6 +30,6 @@ func USSDReceiveHandler(c echo.Context) error {
 	}
 	fmt.Println("genericPayload", genericPayload)
 
-	err, callResponse := MakeHTTPCallToURL(os.Getenv("TEMPORARY_ROUTING_URL"), genericPayload)
-	return providersInterface.ResolveClientResponse(c, callResponse)
+	go MakeHTTPCallToURL(os.Getenv("TEMPORARY_ROUTING_URL"), genericPayload)
+	return providersInterface.ResolveClientResponse(c, nil)
 }
