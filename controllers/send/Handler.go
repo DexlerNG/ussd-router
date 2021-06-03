@@ -22,7 +22,7 @@ func USSDSendHandler(c echo.Context) error {
 		return utils.ValidationResponse(c, err.Error())
 	}
 
-	fmt.Println("String Request Body", string(body))
+	fmt.Println("Send String Request Body", string(body))
 	if err := providerImplementation.Validate(); err != nil{
 		return utils.ValidationResponse(c, err.Error())
 	}
