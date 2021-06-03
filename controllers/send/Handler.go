@@ -1,6 +1,7 @@
 package send
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"io/ioutil"
 	"ussd-router/utils"
@@ -21,6 +22,7 @@ func USSDSendHandler(c echo.Context) error {
 		return utils.ValidationResponse(c, err.Error())
 	}
 
+	fmt.Println("String Request Body", string(body))
 	if err := providerImplementation.Validate(); err != nil{
 		return utils.ValidationResponse(c, err.Error())
 	}
