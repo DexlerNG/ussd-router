@@ -34,19 +34,19 @@ func MakeHTTPCallToURL(URL string, payload *entities.GenericUSSDReceivePayload) 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		// handle error
-		fmt.Println("Unmarshal Error: ", err.Error())
+		fmt.Println("MakeHTTPCallToURL Unmarshal Error: ", err.Error())
 		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		//call slack and drop Message
-		fmt.Println("Unmarshal Error: ", err.Error())
+		fmt.Println("MakeHTTPCallToURL Unmarshal Error: ", err.Error())
 		return
 	}
 	//tto test the response
 
-	fmt.Println("Response Body: ", string(body))
+	fmt.Println("MakeHTTPCallToURL  Response Body: ", string(body))
 	//fmt.Println("ExchangeAuthorizationResponse", response.Body.Authorization.Result.ResultDescription)
 	return
 }

@@ -65,13 +65,6 @@ func (request *ExchangeReceiveImplementation) Process(byteData []byte) (error, *
 
 
 func (request *ExchangeReceiveImplementation) ResolveClientResponse(c echo.Context, byteData []byte) error {
-
-//	soapResponse, _ := xml.Marshal(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:loc="http://www.csapi.org/schema/parlayx/ussd/notification/v1_0/local">
-//   <soapenv:Header/>
-//   <soapenv:Body>
-//<loc:notifyUssdReceptionResponse> <loc:result>0</loc:result>
-//</loc:notifyUssdReceptionResponse> </soapenv:Body>
-//</soapenv:Envelope>`)
 	return c.XML(200, &exchange.USSDReceiveResponsePayload{
 		XmlNS: "http://schemas.xmlsoap.org/soap/envelope/",
 		XmlNLoc: "http://www.csapi.org/schema/parlayx/ussd/notification/v1_0/local",
