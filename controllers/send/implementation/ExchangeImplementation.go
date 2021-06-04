@@ -78,73 +78,75 @@ func (request *ExchangeSendImplementation) Send() error {
 
 	var soapBody []byte
 	var err error
-	if request.MessageType == "end"{
-		fmt.Println("Itt is an end request")
-		soapRequest := exchange.USSDAbortPayload{
-			XmlNS:   "http://schemas.xmlsoap.org/soap/envelope/",
-			XmlNLoc: "http://www.csapi.org/schema/parlayx/ussd/send/v1_0/local",
-			Header: exchange.USSDAbortHeader{
-				RequestSOAPHeader: exchange.USSDAbortRequestHeader{
-					SpId:       request.SpId,
-					SpPassword: md5Value,
-					ServiceId:  request.ServiceId,
-					TimeStamp:  timestamp,
-				},
+	//if request.MessageType == "end"{
+	//	fmt.Println("Itt is an end request")
+	//	soapRequest := exchange.USSDAbortPayload{
+	//		XmlNS:   "http://schemas.xmlsoap.org/soap/envelope/",
+	//		XmlNLoc: "http://www.csapi.org/schema/parlayx/ussd/send/v1_0/local",
+	//		Header: exchange.USSDAbortHeader{
+	//			RequestSOAPHeader: exchange.USSDAbortRequestHeader{
+	//				SpId:       request.SpId,
+	//				SpPassword: md5Value,
+	//				ServiceId:  request.ServiceId,
+	//				TimeStamp:  timestamp,
+	//			},
+	//		},
+	//		Body: exchange.USSDAbortRequestBody{
+	//			AbortUSSDBody: exchange.USSDAbortBody{
+	//				SenderCB: request.SessionId,
+	//				ReceiveCB: request.SessionId,
+	//				AbortReason: request.USSDString,
+	//			},
+	//		},
+	//	}
+	//	soapBody, err = xml.Marshal(soapRequest)
+	//	if err != nil {
+	//		// do error check
+	//		fmt.Println(err)
+	//		return err
+	//	}
+	//}else {
+	//
+	//}
+
+	soapRequest := exchange.USSDSendPayload{
+		XmlNS:   "http://schemas.xmlsoap.org/soap/envelope/",
+		XmlNLoc: "http://www.csapi.org/schema/parlayx/ussd/send/v1_0/local",
+		Header: exchange.USSDSendHeader{
+			RequestSOAPHeader: exchange.USSDSendRequestHeader{
+				SpId:       request.SpId,
+				SpPassword: md5Value,
+				ServiceId:  request.ServiceId,
+				TimeStamp:  timestamp,
+				OA:         request.Msisdn,
+				FA:         request.Msisdn,
 			},
-			Body: exchange.USSDAbortRequestBody{
-				AbortUSSDBody: exchange.USSDAbortBody{
-					SenderCB: request.SessionId,
-					ReceiveCB: request.SessionId,
-					AbortReason: request.USSDString,
-				},
+		},
+		Body: exchange.USSDSendBody{
+			SendUSSDBody: exchange.USSDSendUSSDBody{
+				Msisdn:      request.Msisdn,
+				MsgType:     messageTypeMap[request.MessageType],
+				UssdOpType:  operationTypeMap[request.OperationType],
+				ServiceCode: request.AccessCode,
+				CodeScheme:  request.CodeScheme,
+				USSDString:  request.USSDString,
 			},
-		}
-		soapBody, err = xml.Marshal(soapRequest)
-		if err != nil {
-			// do error check
-			fmt.Println(err)
-			return err
-		}
+		},
+	}
+
+	if validation.IsEmpty(request.SessionId) && request.MessageType == "begin" {
+		soapRequest.Body.SendUSSDBody.SenderCB = uuid.New().String()
+		soapRequest.Body.SendUSSDBody.ReceiveCB = "0xFFFFFFFF"
 	}else {
-		soapRequest := exchange.USSDSendPayload{
-			XmlNS:   "http://schemas.xmlsoap.org/soap/envelope/",
-			XmlNLoc: "http://www.csapi.org/schema/parlayx/ussd/send/v1_0/local",
-			Header: exchange.USSDSendHeader{
-				RequestSOAPHeader: exchange.USSDSendRequestHeader{
-					SpId:       request.SpId,
-					SpPassword: md5Value,
-					ServiceId:  request.ServiceId,
-					TimeStamp:  timestamp,
-					OA:         request.Msisdn,
-					FA:         request.Msisdn,
-				},
-			},
-			Body: exchange.USSDSendBody{
-				SendUSSDBody: exchange.USSDSendUSSDBody{
-					Msisdn:      request.Msisdn,
-					MsgType:     messageTypeMap[request.MessageType],
-					UssdOpType:  operationTypeMap[request.OperationType],
-					ServiceCode: request.AccessCode,
-					CodeScheme:  request.CodeScheme,
-					USSDString:  request.USSDString,
-				},
-			},
-		}
+		soapRequest.Body.SendUSSDBody.SenderCB = request.SessionId
+		soapRequest.Body.SendUSSDBody.ReceiveCB = request.SessionId
+	}
 
-		if validation.IsEmpty(request.SessionId) && request.MessageType == "begin" {
-			soapRequest.Body.SendUSSDBody.SenderCB = uuid.New().String()
-			soapRequest.Body.SendUSSDBody.ReceiveCB = "0xFFFFFFFF"
-		}else {
-			soapRequest.Body.SendUSSDBody.SenderCB = request.SessionId
-			soapRequest.Body.SendUSSDBody.ReceiveCB = request.SessionId
-		}
-
-		soapBody, err = xml.Marshal(soapRequest)
-		if err != nil {
-			// do error check
-			fmt.Println(err)
-			return err
-		}
+	soapBody, err = xml.Marshal(soapRequest)
+	if err != nil {
+		// do error check
+		fmt.Println(err)
+		return err
 	}
 
 	//
