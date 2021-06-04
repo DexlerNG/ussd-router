@@ -15,6 +15,7 @@ func USSDSendHandler(c echo.Context) error {
 	}
 
 	body, err := ioutil.ReadAll(c.Request().Body)
+	fmt.Println("Body of the req", string(body))
 	if err != nil{
 		return utils.ValidationResponse(c, err.Error())
 	}
