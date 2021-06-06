@@ -106,7 +106,7 @@ func RabbitMQPublishToExchange(exchangeName string, data interface{}) error {
 func RabbitMQPublishToQueue(queueName string, data interface{}) error {
 
 	jsonPayload, _ := json.Marshal(data)
-	//fmt.Println("QueuePayload", jsonPayload)
+	fmt.Println("QueuePayload", jsonPayload, queueName)
 	message := amqp.Publishing{
 		Body: []byte(string(jsonPayload)),
 	}

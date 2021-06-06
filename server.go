@@ -1,17 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"os"
+	"time"
 	"ussd-router/controllers"
 	"ussd-router/controllers/configuration"
 	"ussd-router/controllers/receive"
 	"ussd-router/controllers/send"
-	"ussd-router/utils"
+	"ussd-router/startups/logged"
+	"ussd-router/startups/queues"
 )
 
 func customHTTPErrorHandler(err error, c echo.Context) {
@@ -24,28 +27,52 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 	})
 	if error != nil {
 		c.Logger().Error(error)
-
 	}
 	//c.Logger().Error(err)
 }
 
 func authenticateMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		fmt.Println("Authenticating")
-		if !utils.IsStringEmpty(c.QueryParam("clientId")) {
-			c.Set("clientId", c.QueryParam("clientId"))
-		} else {
-			c.Set("clientId", c.Request().Header.Get("client-id"))
-		}
+		var startTime = time.Now()
 
-		return next(c)
+		//log start time
+		//fmt.Println("Authenticating")
+		//if !utils.IsStringEmpty(c.QueryParam("clientId")) {
+		//	c.Set("clientId", c.QueryParam("clientId"))
+		//} else {
+		//	c.Set("clientId", c.Request().Header.Get("client-id"))
+		//}
+
+		fmt.Println("Calling Function")
+		if err := next(c); err != nil{
+			c.Error(err)
+		}
+		fmt.Println("After Calling Function")
+
+		fmt.Println("Headers", c.Request().Header)
+		//fmt.Println("Request Body", string(reqBody))
+		//fmt.Println("Response Body", string(resBody))
+		fmt.Println("Host", c.Request().Host)
+		fmt.Println("Method", c.Request().Method)
+		fmt.Println("IP", c.RealIP())
+		fmt.Println("Status Code", c.Response().Status)
+		fmt.Println("URL", c.Request().URL)
+		fmt.Println("Response Time Spent", time.Since(startTime))
+		//log end time
+		return nil
 	}
 }
 
+
+
+
 func main() {
 	err := godotenv.Load()
-	fmt.Println("Error", err)
+	fmt.Println("Godotenv Error:", err)
 	e := echo.New()
+	requestLogger := logged.New()
+	requestLoggerQueueName := "elasticsearch.single.runner"
+	requestLoggerIndexName := "ussd.router.request.logs." + os.Getenv("APP_ENV")
 
 	// Middlewares
 	e.Use(middleware.Logger())
@@ -57,35 +84,49 @@ func main() {
 	}))
 	e.HTTPErrorHandler = customHTTPErrorHandler
 
-	//redis.GetRedisClient()
-	//queues.GetRabbitMQClient()
-	//defer queues.GetRabbitMQConnection().Close()
+	e.Use(middleware.BodyDump(func(c echo.Context, reqBody, resBody []byte) {
+		//fmt.Println("p", c.Request().Response.Header)
+		go func() {
 
-	//go queues.Listen(map[string]queues.Fn{
-	//	queues.CHARGE_AUTHORIZATION_PROCESSING_QUEUE: charge.ProcessGetAuthorization,
-	//	queues.CHARGE_PROCESSING_QUEUE:               charge.ProcessCharge,
-	//	queues.SUBSCRIPTION_PROCESSING_QUEUE:         subscribe.ProcessInitiateSubscription,
-	//	queues.DATA_SYNC_PROCESSING_QUEUE:            datasync.ProcessDataSync,
-	//})
+			logData := map[string]interface{}{
+				"host":               c.Request().Host,
+				"headers":            c.Request().Header,
+				"method":             c.Request().Method,
+				"ip":                 c.RealIP(),
+				"url":                c.Request().URL.Path,
+				"urlHost":            c.Request().URL.Host,
+				"urlHostName":        c.Request().URL.Hostname(),
+				"requestBody":        string(reqBody),
+				"responseBody":       string(resBody),
+				"responseType":       c.Response().Header().Get("Content-Type"),
+				"responseStatusCode": c.Response().Status,
+				//"processingTime":     time.Since(startTime),
+			}
+
+			jsonValue, _ := json.Marshal(logData)
+			fmt.Println("Request Body", string(jsonValue))
+			err = queues.RabbitMQPublishToQueue(requestLoggerQueueName, map[string]interface{}{
+				"index": requestLoggerIndexName,
+				"data":  logData,
+			})
+			if err != nil {
+				fmt.Println("logged write error", err)
+			}
+		}()
+	}))
 	e.Any("/health-check", controllers.HealthCheckHandler)
+	e.Use(requestLogger.HandleEchoLogger)
 
 	//e.Use()
 
 	authorisedRoute := e.Group("/v1")
 	//authorisedRoute.Use(authenticateMiddleware)
+	//e.Use(authenticateMiddleware)
+
 	authorisedRoute.POST("/routing-configurations/:provider", configuration.SaveConfigurationHandler)
-	//authorisedRoute.DELETE("/receive-configurations/:provider/:accessCode", configuration.SaveConfigurationHandler)
 	authorisedRoute.Any("/receive/:provider", receive.USSDReceiveHandler)
+
 	authorisedRoute.Any("/send/:provider", send.USSDSendHandler)
-
-
-	//authorisedRoute.POST("/charge/:provider/authorization-callback", charge.AuthorizationCallbackHandler)
-	//authorisedRoute.POST("/charge/:provider/authorization-callback/:reference", charge.AuthorizationCallbackHandler)
-	//
-	////subscription/unsubscribe to a product
-	//authorisedRoute.POST("/products/:mode/:provider", subscribe.QueueSubscribeHandler)
-	//
-	//authorisedRoute.POST("/data-sync/:provider", datasync.QueueDataSyncHandler)
 
 	// Server
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))

@@ -21,7 +21,7 @@ func USSDReceiveHandler(c echo.Context) error {
 	if err != nil {
 		return utils.ValidationResponse(c, err.Error())
 	}
-	fmt.Println("BODY", string(body))
+	//fmt.Println("BODY", string(body))
 
 	//Spool this to another thread
 	err, genericPayload := providersInterface.Process(body)
