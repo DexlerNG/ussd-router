@@ -97,7 +97,7 @@ func main() {
 				"responseBody":       string(resBody),
 				"responseType":       c.Response().Header().Get("Content-Type"),
 				"responseStatusCode": c.Response().Status,
-				//"processingTime":     time.Since(startTime),
+				"time": time.Now().Unix(),
 			}
 
 			//jsonValue, _ := json.Marshal(logData)
