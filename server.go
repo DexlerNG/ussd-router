@@ -103,7 +103,7 @@ func main() {
 				//"processingTime":     time.Since(startTime),
 			}
 
-			jsonValue, _ := json.Marshal(logData)
+			//jsonValue, _ := json.Marshal(logData)
 			//fmt.Println("Request Body", string(jsonValue))
 			err = queues.RabbitMQPublishToQueue(requestLoggerQueueName, map[string]interface{}{
 				"index": requestLoggerIndexName,
