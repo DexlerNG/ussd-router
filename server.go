@@ -12,7 +12,6 @@ import (
 	"ussd-router/controllers/configuration"
 	"ussd-router/controllers/receive"
 	"ussd-router/controllers/send"
-	"ussd-router/startups/logged"
 	"ussd-router/startups/queues"
 )
 
@@ -69,7 +68,6 @@ func main() {
 	err := godotenv.Load()
 	fmt.Println("Godotenv Error:", err)
 	e := echo.New()
-	requestLogger := logged.New()
 	requestLoggerQueueName := "elasticsearch.single.runner"
 	requestLoggerIndexName := "ussd.router.request.logs." + os.Getenv("APP_ENV")
 
@@ -114,7 +112,6 @@ func main() {
 		}()
 	}))
 	e.Any("/health-check", controllers.HealthCheckHandler)
-	e.Use(requestLogger.HandleEchoLogger)
 
 	//e.Use()
 
