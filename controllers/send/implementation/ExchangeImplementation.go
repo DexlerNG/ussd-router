@@ -36,6 +36,7 @@ type ExchangeSendImplementation struct {
 	AccessCode    string `json:"accessCode"`
 	Msisdn        string `json:"msisdn"`
 	SessionId     string `json:"sessionId"`
+	Network string `json:"network"`
 	CallbackURL   string `json:"callbackURL"`
 	MessageType   string `json:"messageType"`
 	USSDString    string `json:"ussdString"`
@@ -53,6 +54,7 @@ func (request *ExchangeSendImplementation) IngestByte(byteData []byte) error {
 }
 func (request *ExchangeSendImplementation) Validate() error {
 	request.MessageType = strings.ToLower(request.MessageType)
+	request.Network = strings.ToLower(request.Network)
 	if validation.IsEmpty(request.OperationType) {
 		request.OperationType = "request"
 	} else {
@@ -66,6 +68,7 @@ func (request *ExchangeSendImplementation) Validate() error {
 		validation.Field(&request.MessageType, validation.In("begin", "continue", "end"), validation.Required),
 		validation.Field(&request.USSDString, validation.Required),
 		validation.Field(&request.OperationType, validation.Required),
+		validation.Field(&request.Network, validation.In("mtn", "airtel", "glo", "9mobile"), validation.Required),
 		validation.Field(&request.CodeScheme, validation.Required),
 		validation.Field(&request.AccessCode, validation.Required),
 		//validation.Field(&request.ServiceId, validation.Required),
