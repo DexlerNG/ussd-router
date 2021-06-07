@@ -7,12 +7,12 @@ import (
 	"encoding/xml"
 	"fmt"
 	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/google/uuid"
 	"os"
 	"strings"
 	"time"
 	"ussd-router/entities/exchange"
+	"ussd-router/models"
 	"ussd-router/services"
 )
 
@@ -60,23 +60,23 @@ func (request *ExchangeSendImplementation) Validate() error {
 	}
 
 	return validation.ValidateStruct(request,
-		validation.Field(&request.SpId, validation.Required),
-		validation.Field(&request.CallbackURL, is.URL),
-		validation.Field(&request.SpPassword, validation.Required),
+		//validation.Field(&request.SpId, validation.Required),
+		//validation.Field(&request.CallbackURL, is.URL),
+		//validation.Field(&request.SpPassword, validation.Required),
 		validation.Field(&request.MessageType, validation.In("begin", "continue", "end"), validation.Required),
 		validation.Field(&request.USSDString, validation.Required),
 		validation.Field(&request.OperationType, validation.Required),
 		validation.Field(&request.CodeScheme, validation.Required),
 		validation.Field(&request.AccessCode, validation.Required),
-		validation.Field(&request.ServiceId, validation.Required),
+		//validation.Field(&request.ServiceId, validation.Required),
 		validation.Field(&request.Msisdn, validation.Required),
 	)
 }
 
-func (request *ExchangeSendImplementation) Send() error {
+func (request *ExchangeSendImplementation) Send(config *models.RoutingConfiguration) error {
 
 	timestamp := time.Now().Format("20060102150405")
-	md5Sum := md5.Sum([]byte(request.SpId + request.SpPassword + timestamp))
+	md5Sum := md5.Sum([]byte(config.SpId + config.SpPassword + timestamp))
 	md5Value := hex.EncodeToString(md5Sum[:])
 	fmt.Println("Timestamp", timestamp, "Str", md5Value)
 
@@ -118,9 +118,9 @@ func (request *ExchangeSendImplementation) Send() error {
 		XmlNLoc: "http://www.csapi.org/schema/parlayx/ussd/send/v1_0/local",
 		Header: exchange.USSDSendHeader{
 			RequestSOAPHeader: exchange.USSDSendRequestHeader{
-				SpId:       request.SpId,
+				SpId:       config.SpId,
 				SpPassword: md5Value,
-				ServiceId:  request.ServiceId,
+				ServiceId:  config.ServiceId,
 				TimeStamp:  timestamp,
 				OA:         request.Msisdn,
 				FA:         request.Msisdn,

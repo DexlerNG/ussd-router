@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -12,6 +13,8 @@ import (
 	"ussd-router/controllers/configuration"
 	"ussd-router/controllers/receive"
 	"ussd-router/controllers/send"
+	"ussd-router/startups"
+	redis "ussd-router/startups/cache"
 	"ussd-router/startups/queues"
 )
 
@@ -79,12 +82,19 @@ func main() {
 	}))
 	e.HTTPErrorHandler = customHTTPErrorHandler
 
+	client := startups.GetMongoClient()
+	defer client.Disconnect(context.Background())
+
+	redis.GetRedisClient()
+	queues.GetRabbitMQClient()
+	defer queues.GetRabbitMQConnection().Close()
+
+
 	requestLoggerQueueName := "elasticsearch.single.runner"
 	requestLoggerIndexName := "ussd.router.request.logs." + os.Getenv("APP_ENV")
 	e.Use(middleware.BodyDump(func(c echo.Context, reqBody, resBody []byte) {
 		//fmt.Println("p", c.Request().Response.Header)
 		go func() {
-
 			logData := map[string]interface{}{
 				"host":               c.Request().Host,
 				"headers":            c.Request().Header,

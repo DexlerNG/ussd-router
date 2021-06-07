@@ -12,5 +12,6 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/streadway/amqp v1.0.0
+	go.mongodb.org/mongo-driver v1.3.4
 	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb // indirect
 )

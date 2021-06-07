@@ -1,13 +1,16 @@
 package configuration
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"io/ioutil"
+	"ussd-router/models"
 	"ussd-router/utils"
 )
 
 
 func SaveConfigurationHandler(c echo.Context) error {
+
 	providerImplementation := GetConfigurationProvider(c.Param("provider"))
 	if providerImplementation == nil {
 		return utils.ErrorResponse(c, "Provider '" + c.Param("provider") + "' is not supported")
@@ -25,17 +28,20 @@ func SaveConfigurationHandler(c echo.Context) error {
 		return utils.ValidationResponse(c, err.Error())
 	}
 
-	//var body []byte
-	//body, err := ioutil.ReadAll(c.Request().Body)
-	//if err != nil{
-	//	return utils.ValidationResponse(c, err.Error())
-	//}
-	if err:= providerImplementation.Process(); err != nil{
+	err, config := providerImplementation.Process()
+	if err != nil{
 		return utils.ErrorResponse(c, err.Error())
 	}
 	//process Configuration
-	//
 
+	config["provider"] = c.Param("provider")
+	fmt.Println("Config", config)
+	err, insertion := models.SaveConfigurationFromMap(config)
+	if err != nil{
+		return utils.ErrorResponse(c, err.Error())
+	}
+
+	fmt.Println("Inserted", insertion)
 	return utils.AcceptedResponse(c, "Configuration Saved")
 }
 //func RemoveConfigurationHandler(c echo.Context) error {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"io/ioutil"
-	"os"
+	"ussd-router/models"
 	"ussd-router/utils"
 )
 
@@ -29,8 +29,25 @@ func USSDReceiveHandler(c echo.Context) error {
 		return utils.ErrorResponse(c, err.Error())
 	}
 	fmt.Println("genericPayload", genericPayload)
+	var config models.RoutingConfiguration
+	if utils.IsStringEmpty(genericPayload.Network){
+		//get details
+		err, config = models.FindConfigurationBySpIdAndServiceIdAndAccessCodeAndAccessString(genericPayload.SpId, genericPayload.ServiceId, genericPayload.AccessCode, genericPayload.AccessString)
+		if err != nil {
+			fmt.Println("Unknown Error", err, genericPayload)
+			return utils.ErrorResponse(c, err.Error())
+		}
+		genericPayload.Network = config.Network
 
+	}else {
+		//We have network...
+		err, config = models.FindConfigurationByAccessCodeAndNetworkAndAccessString(genericPayload.AccessCode, genericPayload.Network, genericPayload.AccessString)
+		if err != nil {
+			fmt.Println("Unknown Error", err, genericPayload)
+			return utils.ErrorResponse(c, err.Error())
+		}
+	}
 	fmt.Println("Calling Goroutine MakeHTTPCallToURL")
-	go MakeHTTPCallToURL(os.Getenv("TEMPORARY_ROUTING_URL"), genericPayload)
+	go MakeHTTPCallToURL(config.CallbackURL, genericPayload)
 	return providersInterface.ResolveClientResponse(c, nil)
 }
