@@ -68,8 +68,6 @@ func main() {
 	err := godotenv.Load()
 	fmt.Println("Godotenv Error:", err)
 	e := echo.New()
-	requestLoggerQueueName := "elasticsearch.single.runner"
-	requestLoggerIndexName := "ussd.router.request.logs." + os.Getenv("APP_ENV")
 
 	// Middlewares
 	e.Use(middleware.Logger())
@@ -81,6 +79,8 @@ func main() {
 	}))
 	e.HTTPErrorHandler = customHTTPErrorHandler
 
+	requestLoggerQueueName := "elasticsearch.single.runner"
+	requestLoggerIndexName := "ussd.router.request.logs." + os.Getenv("APP_ENV")
 	e.Use(middleware.BodyDump(func(c echo.Context, reqBody, resBody []byte) {
 		//fmt.Println("p", c.Request().Response.Header)
 		go func() {
