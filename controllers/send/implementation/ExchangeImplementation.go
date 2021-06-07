@@ -53,7 +53,11 @@ func (request *ExchangeSendImplementation) IngestByte(byteData []byte) error {
 }
 func (request *ExchangeSendImplementation) Validate() error {
 	request.MessageType = strings.ToLower(request.MessageType)
-	request.OperationType = strings.ToLower(request.OperationType)
+	if validation.IsEmpty(request.OperationType) {
+		request.OperationType = "request"
+	} else {
+		request.OperationType = strings.ToLower(request.OperationType)
+	}
 
 	return validation.ValidateStruct(request,
 		validation.Field(&request.SpId, validation.Required),
@@ -137,7 +141,7 @@ func (request *ExchangeSendImplementation) Send() error {
 	if validation.IsEmpty(request.SessionId) && request.MessageType == "begin" {
 		soapRequest.Body.SendUSSDBody.SenderCB = uuid.New().String()
 		soapRequest.Body.SendUSSDBody.ReceiveCB = "0xFFFFFFFF"
-	}else {
+	} else {
 		soapRequest.Body.SendUSSDBody.SenderCB = request.SessionId
 		soapRequest.Body.SendUSSDBody.ReceiveCB = request.SessionId
 	}
@@ -159,10 +163,9 @@ func (request *ExchangeSendImplementation) Send() error {
 	//fmt.Println(err)
 	fmt.Printf("%+v\n", string(soapBody))
 
-
 	err, _ = services.ExchangeAggregatorSendUSSD(os.Getenv("EXCHANGE_SEND_USSD_BASE_URL"), soapBody)
 	fmt.Println("response err", err)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	return nil
