@@ -30,6 +30,12 @@ func USSDReceiveHandler(c echo.Context) error {
 	}
 	fmt.Println("genericPayload", genericPayload)
 	var config models.RoutingConfiguration
+
+
+	if !utils.IsStringEmpty(c.Param("network")) {
+		genericPayload.Network = c.Param("network")
+	}
+
 	if utils.IsStringEmpty(genericPayload.Network){
 		//get details
 		err, config = models.FindConfigurationBySpIdAndServiceIdAndAccessCodeAndAccessString(genericPayload.SpId, genericPayload.ServiceId, genericPayload.AccessCode, genericPayload.AccessString)

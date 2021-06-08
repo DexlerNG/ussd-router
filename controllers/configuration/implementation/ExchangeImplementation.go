@@ -72,7 +72,7 @@ func (request *ExchangeConfiguration) Process() (error, map[string]string) {
 		Body: exchange.SUDBody{
 			SUDBodyStartUSSDNotification: exchange.SUDBodyStartUSSDNotification{
 				Reference: exchange.SUDBodyStartUSSDNotificationReference{
-					Endpoint:      os.Getenv("APP_PROXY_BASE_URL") + "/v1/receive/exchange",
+					Endpoint:      os.Getenv("APP_PROXY_BASE_URL") + "/v1/receive/exchange/" + request.Network,
 					InterfaceName: request.ProductName,
 					Correlator:    request.AccessCode,
 				},

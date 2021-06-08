@@ -131,6 +131,7 @@ func main() {
 
 	authorisedRoute.POST("/routing-configurations/:provider", configuration.SaveConfigurationHandler)
 	authorisedRoute.Any("/receive/:provider", receive.USSDReceiveHandler)
+	authorisedRoute.Any("/receive/:provider/:network", receive.USSDReceiveHandler)
 
 	authorisedRoute.Any("/send/:provider", send.USSDSendHandler)
 
