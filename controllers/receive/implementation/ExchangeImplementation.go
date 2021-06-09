@@ -59,6 +59,7 @@ func (request *ExchangeReceiveImplementation) Process(byteData []byte) (error, *
 		SessionId: ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.SenderCB,
 		Reference: ussdReceive.Header.NotifySoapHeader.TraceUniqueId,
 		AccessCode: ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode,
+		ServiceCode: ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode,
 		OperationType: operationTypeMap[ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.UssdOpType],
 	}
 }

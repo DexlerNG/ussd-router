@@ -15,6 +15,7 @@ type GenericUSSDReceivePayload struct {
 	Msisdn        string `json:"msisdn"`
 	Reference     string `json:"reference"`
 	AccessCode    string `json:"accessCode"`
+	ServiceCode    string `json:"serviceCode"`
 	AccessString  string `json:"accessString"`
 	USSDString    string `json:"ussdString"`
 	Timestamp     string `json:"timestamp"`
