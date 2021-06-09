@@ -2,6 +2,7 @@ package receive
 
 import (
 	"fmt"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/labstack/echo/v4"
 	"io/ioutil"
 	"ussd-router/models"
@@ -29,6 +30,12 @@ func USSDReceiveHandler(c echo.Context) error {
 		return utils.ErrorResponse(c, err.Error())
 	}
 	fmt.Println("genericPayload", genericPayload)
+
+	if validation.IsEmpty(genericPayload.SessionId){
+		fmt.Println("Empty session", genericPayload)
+
+		return providersInterface.ResolveClientResponse(c, nil)
+	}
 	var config models.RoutingConfiguration
 
 
