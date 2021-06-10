@@ -28,6 +28,7 @@ func MakeHTTPCallToURL(URL string, payload *entities.GenericUSSDReceivePayload) 
 	//Check DB or cache for URL to route, but for now, use the ENV
 	reqURL, _ := url.Parse(URL)
 	jsonValue, _ := json.Marshal(payload)
+	fmt.Printf("Sending %s to %s", string(jsonValue), URL)
 	req.URL = reqURL
 	req.Method = "POST"
 	req.Body = ioutil.NopCloser(bytes.NewReader(jsonValue))
