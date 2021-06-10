@@ -70,7 +70,7 @@ func USSDReceiveHandler(c echo.Context) error {
 			return utils.ErrorResponse(c, err.Error())
 		}
 	}
-	fmt.Println("Calling Goroutine MakeHTTPCallToURL")
+	fmt.Println("Calling Goroutine MakeHTTPCallToURL", genericPayload)
 	redisCacheResponse := redis.GetRedisClient().Set(context.Background(), "ussd-sessionId:" + genericPayload.SessionId, config.CallbackURL, 2 * time.Minute).String()
 	fmt.Println("Set Cache SessionId - > URL", redisCacheResponse)
 
