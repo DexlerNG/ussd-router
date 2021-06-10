@@ -41,7 +41,7 @@ func USSDReceiveHandler(c echo.Context) error {
 		return providersInterface.ResolveClientResponse(c, nil)
 	}
 
-	if !utils.IsStringEmpty(c.Param("network")) {
+	if !utils.IsStringEmpty(c.Param("network")) && validation.IsEmpty(genericPayload.Network){
 		genericPayload.Network = c.Param("network")
 	}
 
