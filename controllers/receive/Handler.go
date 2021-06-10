@@ -2,6 +2,7 @@ package receive
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/labstack/echo/v4"
@@ -47,8 +48,7 @@ func USSDReceiveHandler(c echo.Context) error {
 		go MakeHTTPCallToURL(URL, genericPayload)
 		return providersInterface.ResolveClientResponse(c, nil)
 	}
-	var config models.RoutingConfiguration
-
+	var config *models.RoutingConfiguration
 	if !utils.IsStringEmpty(c.Param("network")) {
 		genericPayload.Network = c.Param("network")
 	}
@@ -73,6 +73,13 @@ func USSDReceiveHandler(c echo.Context) error {
 	fmt.Println("Calling Goroutine MakeHTTPCallToURL")
 	redisCacheResponse := redis.GetRedisClient().Set(context.Background(), "ussd-sessionId:" + genericPayload.SessionId, config.CallbackURL, 2 * time.Minute).String()
 	fmt.Println("Set Cache SessionId - > URL", redisCacheResponse)
+
+	configJsonValue,_ := json.Marshal(config)
+	fmt.Println("Set Cache SessionId - > URL", redisCacheResponse)
+
+	redisCacheResponse = redis.GetRedisClient().Set(context.Background(), fmt.Sprintf("ussd-session-config:%s:%s", genericPayload.Network, genericPayload.SessionId), configJsonValue, 2 * time.Minute).String()
+	fmt.Println("Set Cache SessionId To Config - > URL", redisCacheResponse)
+
 	go MakeHTTPCallToURL(config.CallbackURL, genericPayload)
 	return providersInterface.ResolveClientResponse(c, nil)
 }

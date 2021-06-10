@@ -35,7 +35,7 @@ func GetCacheKeyPlus(spId string, serviceId string, accessCode string, accessStr
 	return "ussd-routing-configuration:" + spId + ":" + serviceId + ":" + accessCode + ":" + accessString
 }
 
-func FindConfigurationByAccessCodeAndNetworkAndAccessString(accessCode string, network string, accessString string) (error, RoutingConfiguration) {
+func FindConfigurationByAccessCodeAndNetworkAndAccessString(accessCode string, network string, accessString string) (error, *RoutingConfiguration) {
 
 	redisResponse, err := redis.GetRedisClient().Get(context.Background(), GetCacheKey(accessCode, network, accessString)).Result()
 	fmt.Println("From Cache", redisResponse, err)
@@ -43,7 +43,7 @@ func FindConfigurationByAccessCodeAndNetworkAndAccessString(accessCode string, n
 	if err == nil && redisResponse != "" {
 		result := RoutingConfiguration{}
 		_ = json.Unmarshal([]byte(redisResponse), &result)
-		return nil, result
+		return nil, &result
 	}
 
 	fmt.Println("Could Not Get Config from cache", err)
@@ -59,19 +59,32 @@ func FindConfigurationByAccessCodeAndNetworkAndAccessString(accessCode string, n
 	err = GetCollection(collection).FindOne(context.TODO(), filter.Filter).Decode(&result)
 	//fmt.Println("Error", err)
 	if err != nil {
-		return err, result
+		return err, &result
 	}
 
 	jsonValue, _ := json.Marshal(result)
 	redisResponse, err = redis.GetRedisClient().Set(context.Background(), GetCacheKey(accessCode, network, accessString), jsonValue, 0).Result()
 	fmt.Println("Save Config In Redis", redisResponse, "err", err)
-	return nil, result
+	return nil, &result
 	//
 	//err, interfaceResult := FindOne(collection, query, RoutingConfiguration{})
 	//fmt.Println("interfaceResult", interfaceResult)
 	//return err, i
 }
-func FindConfigurationBySpIdAndServiceIdAndAccessCodeAndAccessString(spId string, serviceId string, accessCode string, accessString string) (error, RoutingConfiguration) {
+func FindConfigurationBySessionIdAndNetwork(network string, sessionId string) (error, *RoutingConfiguration) {
+
+	redisResponse, err := redis.GetRedisClient().Get(context.Background(), fmt.Sprintf("ussd-session-config:%s:%s", network, sessionId)).Result()
+	fmt.Println("From Session Cache", redisResponse, err)
+	if err == nil && redisResponse != "" {
+		result := RoutingConfiguration{}
+		_ = json.Unmarshal([]byte(redisResponse), &result)
+		return nil, &result
+	}
+
+	return nil, nil
+
+}
+func FindConfigurationBySpIdAndServiceIdAndAccessCodeAndAccessString(spId string, serviceId string, accessCode string, accessString string) (error, *RoutingConfiguration) {
 
 	redisResponse, err := redis.GetRedisClient().Get(context.Background(), GetCacheKeyPlus(spId, serviceId, accessCode, accessString)).Result()
 	fmt.Println("From Cache", redisResponse, err)
@@ -79,7 +92,7 @@ func FindConfigurationBySpIdAndServiceIdAndAccessCodeAndAccessString(spId string
 	if err == nil && redisResponse != "" {
 		result := RoutingConfiguration{}
 		_ = json.Unmarshal([]byte(redisResponse), &result)
-		return nil, result
+		return nil, &result
 	}
 
 	fmt.Println("Could Not Get Config from cache", err)
@@ -96,13 +109,13 @@ func FindConfigurationBySpIdAndServiceIdAndAccessCodeAndAccessString(spId string
 	err = GetCollection(collection).FindOne(context.TODO(), filter.Filter).Decode(&result)
 	//fmt.Println("Error", err)
 	if err != nil {
-		return err, result
+		return err, &result
 	}
 
 	jsonValue, _ := json.Marshal(result)
 	redisResponse, err = redis.GetRedisClient().Set(context.Background(), GetCacheKeyPlus(spId, serviceId, accessCode, accessString), jsonValue, 0).Result()
 	fmt.Println("Save Config In Redis", redisResponse, "err", err)
-	return nil, result
+	return nil, &result
 }
 
 func SaveConfiguration(request RoutingConfiguration) (error, *interface{}) {

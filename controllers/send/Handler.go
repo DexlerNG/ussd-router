@@ -3,6 +3,7 @@ package send
 import (
 	"encoding/json"
 	"fmt"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/labstack/echo/v4"
 	"io/ioutil"
 	"ussd-router/entities"
@@ -36,20 +37,27 @@ func USSDSendHandler(c echo.Context) error {
 
 
 	//get generic requestt
-	request := entities.SendUSSDGenericRequest{
-	}
+	request := entities.SendUSSDGenericRequest{}
 	if err = json.Unmarshal(body, &request); err != nil {
 		return utils.ValidationResponse(c, err.Error())
 	}
 
 	fmt.Println("Small", request)
 	//
-	err, config := models.FindConfigurationByAccessCodeAndNetworkAndAccessString(request.AccessCode, request.Network, "")
+	_, config := models.FindConfigurationBySessionIdAndNetwork(request.Network, request.SessionId)
+	if !validation.IsEmpty(config){
+		if err:= providerImplementation.Send(config); err != nil{
+			return utils.ErrorResponse(c, err.Error())
+		}
+		return utils.AcceptedResponse(c, "USSD Send Completed")
+	}
+
+	err, config = models.FindConfigurationByAccessCodeAndNetworkAndAccessString(request.AccessCode, request.Network, "")
 	if err != nil{
 		return utils.ValidationResponse(c, err.Error())
 	}
 
-	if err:= providerImplementation.Send(&config); err != nil{
+	if err:= providerImplementation.Send(config); err != nil{
 		return utils.ErrorResponse(c, err.Error())
 	}
 

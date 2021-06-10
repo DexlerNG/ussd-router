@@ -28,4 +28,5 @@ type GenericUSSDReceivePayload struct {
 type SendUSSDGenericRequest struct {
 	AccessCode    string `json:"accessCode"`
 	Network       string `json:"network"`
+	SessionId     string `json:"sessionId"`
 }
