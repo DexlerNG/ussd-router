@@ -41,6 +41,10 @@ func USSDReceiveHandler(c echo.Context) error {
 		return providersInterface.ResolveClientResponse(c, nil)
 	}
 
+	if !utils.IsStringEmpty(c.Param("network")) {
+		genericPayload.Network = c.Param("network")
+	}
+
 	// check cache for URL, this makes it fast
 	URL, err := redis.GetRedisClient().Get(context.Background(), "ussd-sessionId:" + genericPayload.SessionId).Result()
 	fmt.Println("URL From Cache", URL, "Error", err)
@@ -49,9 +53,6 @@ func USSDReceiveHandler(c echo.Context) error {
 		return providersInterface.ResolveClientResponse(c, nil)
 	}
 	var config *models.RoutingConfiguration
-	if !utils.IsStringEmpty(c.Param("network")) {
-		genericPayload.Network = c.Param("network")
-	}
 
 	if utils.IsStringEmpty(genericPayload.Network){
 		//get details
