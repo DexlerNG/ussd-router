@@ -1,11 +1,14 @@
 package receive
 
 import (
+	"context"
 	"fmt"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/labstack/echo/v4"
 	"io/ioutil"
+	"time"
 	"ussd-router/models"
+	redis "ussd-router/startups/cache"
 	"ussd-router/utils"
 )
 
@@ -36,8 +39,15 @@ func USSDReceiveHandler(c echo.Context) error {
 
 		return providersInterface.ResolveClientResponse(c, nil)
 	}
-	var config models.RoutingConfiguration
 
+	// check cache for URL, this makes it fast
+	URL := redis.GetRedisClient().Get(context.Background(), "ussd-sessionId:" + genericPayload.SessionId).String()
+	fmt.Println("URL From Cache", URL)
+	if !validation.IsEmpty(URL){
+		go MakeHTTPCallToURL(URL, genericPayload)
+		return providersInterface.ResolveClientResponse(c, nil)
+	}
+	var config models.RoutingConfiguration
 
 	if !utils.IsStringEmpty(c.Param("network")) {
 		genericPayload.Network = c.Param("network")
@@ -61,6 +71,8 @@ func USSDReceiveHandler(c echo.Context) error {
 		}
 	}
 	fmt.Println("Calling Goroutine MakeHTTPCallToURL")
+	redisCacheResponse := redis.GetRedisClient().Set(context.Background(), "ussd-sessionId:" + genericPayload.SessionId, config.CallbackURL, 2 * time.Minute).String()
+	fmt.Println("Set Cache SessionId - > URL", redisCacheResponse)
 	go MakeHTTPCallToURL(config.CallbackURL, genericPayload)
 	return providersInterface.ResolveClientResponse(c, nil)
 }
