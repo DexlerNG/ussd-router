@@ -41,9 +41,9 @@ func USSDReceiveHandler(c echo.Context) error {
 	}
 
 	// check cache for URL, this makes it fast
-	URL := redis.GetRedisClient().Get(context.Background(), "ussd-sessionId:" + genericPayload.SessionId).String()
-	fmt.Println("URL From Cache", URL)
-	if !validation.IsEmpty(URL){
+	URL, err := redis.GetRedisClient().Get(context.Background(), "ussd-sessionId:" + genericPayload.SessionId).Result()
+	fmt.Println("URL From Cache", URL, "Error", err)
+	if err == nil && !validation.IsEmpty(URL){
 		go MakeHTTPCallToURL(URL, genericPayload)
 		return providersInterface.ResolveClientResponse(c, nil)
 	}
