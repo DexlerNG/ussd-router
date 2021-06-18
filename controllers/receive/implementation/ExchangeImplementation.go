@@ -60,7 +60,7 @@ func (request *ExchangeReceiveImplementation) Process(byteData []byte) (error, *
 		Reference:     ussdReceive.Header.NotifySoapHeader.TraceUniqueId,
 		OperationType: operationTypeMap[ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.UssdOpType],
 	}
-	if response.OperationType == "begin" {
+	if response.MessageType == "begin" {
 		fmt.Println("Begin USSD")
 		response.ServiceCode = strings.TrimPrefix(ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode, "*")
 		response.ServiceCode = strings.TrimSuffix(ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode, "#")
