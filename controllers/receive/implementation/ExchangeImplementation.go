@@ -65,6 +65,7 @@ func (request *ExchangeReceiveImplementation) Process(byteData []byte) (error, *
 		response.ServiceCode = strings.TrimPrefix(ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode, "*")
 		response.ServiceCode = strings.TrimSuffix(ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode, "#")
 		response.AccessCode = response.ServiceCode
+		fmt.Println("Begin USSD", response.ServiceCode)
 	} else {
 		response.AccessCode = ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode
 		response.ServiceCode = ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode
