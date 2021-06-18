@@ -61,7 +61,7 @@ func (request *ExchangeReceiveImplementation) Process(byteData []byte) (error, *
 		OperationType: operationTypeMap[ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.UssdOpType],
 	}
 	if response.OperationType == "begin" {
-		fmt.Println("Begin USSD");
+		fmt.Println("Begin USSD")
 		response.ServiceCode = strings.TrimPrefix(ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode, "*")
 		response.ServiceCode = strings.TrimSuffix(ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode, "#")
 		response.AccessCode = response.ServiceCode
