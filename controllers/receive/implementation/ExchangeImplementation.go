@@ -62,10 +62,10 @@ func (request *ExchangeReceiveImplementation) Process(byteData []byte) (error, *
 	}
 	if response.MessageType == "begin" {
 		fmt.Println("Begin USSD")
-		response.ServiceCode = strings.TrimPrefix(ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode, "*")
-		response.ServiceCode = strings.TrimSuffix(ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode, "#")
+		response.ServiceCode = strings.TrimPrefix(ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.USSDString, "*")
+		response.ServiceCode = strings.TrimSuffix(response.ServiceCode, "#")
 		response.AccessCode = response.ServiceCode
-		fmt.Println("Begin USSD", response.ServiceCode)
+		fmt.Println("Service Code on Begin", response.ServiceCode)
 	} else {
 		response.AccessCode = ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode
 		response.ServiceCode = ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode
