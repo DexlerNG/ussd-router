@@ -18,7 +18,7 @@ pipelines:
             # Set $DOCKER_HUB_USERNAME and $DOCKER_HUB_PASSWORD as environment variables in repository settings
             - docker login --username $DOCKER_HUB_USERNAME --password $DOCKER_HUB_PASSWORD
 
-            - export IMAGE_NAME=$DOCKER_IMAGE_NAME:$BITBUCKET_COMMIT
+            - export IMAGE_NAME=$DOCKER_HUB_USERNAME/$BITBUCKET_REPO_SLUG:$BITBUCKET_COMMIT
             # build the Docker image (this will use the Dockerfile in the root of the repo)
             - docker build -t $IMAGE_NAME .
             # push the new Docker image to the Docker registry
@@ -27,7 +27,7 @@ pipelines:
           name: Deploy to Kubernetes
           image: atlassian/pipelines-kubectl
           script:
-            - sed -i "s|{{image}}|$DOCKER_IMAGE_NAME:$BITBUCKET_COMMIT|g" kubernetes.yaml
+            - sed -i "s|{{image}}|$DOCKER_HUB_USERNAME/$BITBUCKET_REPO_SLUG:$BITBUCKET_COMMIT|g" kubernetes.yaml
             - echo $KUBE_CONFIG | base64 -d > kubeconfig.yml
             - cat kubeconfig.yml
             - kubectl --kubeconfig=kubeconfig.yml -n telco apply -f kubernetes.yaml
@@ -41,7 +41,7 @@ pipelines:
             - docker
           script: # Modify the commands below to build your repository.
 
-            - export IMAGE_NAME=$DOCKER_IMAGE_NAME:$BITBUCKET_COMMIT
+            - export IMAGE_NAME=$DOCKER_HUB_USERNAME/$BITBUCKET_REPO_SLUG:$BITBUCKET_COMMIT
             - docker login --username $DOCKER_HUB_USERNAME --password $DOCKER_HUB_PASSWORD
             # build the Docker image (this will use the Dockerfile in the root of the repo)
             - docker build -t $IMAGE_NAME .
@@ -52,7 +52,7 @@ pipelines:
           name: Deploy to Kubernetes
           image: atlassian/pipelines-kubectl
           script:
-            - sed -i "s|{{image}}|$DOCKER_IMAGE_NAME:$BITBUCKET_COMMIT|g" kubernetes.yaml
+            - sed -i "s|{{image}}|$DOCKER_HUB_USERNAME/$BITBUCKET_REPO_SLUG:$BITBUCKET_COMMIT|g" kubernetes.yaml
             - echo $KUBE_CONFIG_SANDBOX_STAGING | base64 -d > kubeconfig.yml
             - cat kubeconfig.yml
             - kubectl --kubeconfig=kubeconfig.yml -n telco-sandbox apply -f kubernetes.yaml
@@ -65,7 +65,7 @@ pipelines:
             - docker
           script: # Modify the commands below to build your repository.
 
-            - export IMAGE_NAME=$DOCKER_IMAGE_NAME:$BITBUCKET_COMMIT
+            - export IMAGE_NAME=$DOCKER_HUB_USERNAME/$BITBUCKET_REPO_SLUG:$BITBUCKET_COMMIT
             - docker login --username $DOCKER_HUB_USERNAME --password $DOCKER_HUB_PASSWORD
             # build the Docker image (this will use the Dockerfile in the root of the repo)
             - docker build -t $IMAGE_NAME .
@@ -76,7 +76,7 @@ pipelines:
           name: Deploy to Kubernetes
           image: atlassian/pipelines-kubectl
           script:
-            - sed -i "s|{{image}}|$DOCKER_IMAGE_NAME:$BITBUCKET_COMMIT|g" kubernetes.yaml
+            - sed -i "s|{{image}}|$DOCKER_HUB_USERNAME/$BITBUCKET_REPO_SLUG:$BITBUCKET_COMMIT|g" kubernetes.yaml
             - echo $KUBE_CONFIG_SANDBOX_STAGING | base64 -d > kubeconfig.yml
             - cat kubeconfig.yml
             - kubectl --kubeconfig=kubeconfig.yml -n telco-staging apply -f kubernetes.yaml
@@ -90,7 +90,7 @@ pipelines:
             - docker
           script: # Modify the commands below to build your repository.
 
-#            - export IMAGE_NAME=$DOCKER_IMAGE_NAME:$BITBUCKET_COMMIT
+#            - export IMAGE_NAME=$DOCKER_HUB_USERNAME/$BITBUCKET_REPO_SLUG:$BITBUCKET_COMMIT
             - export IMAGE_NAME=$DOCKER_IMAGE_NAME:development
             - docker login --username $DOCKER_HUB_USERNAME --password $DOCKER_HUB_PASSWORD
             # build the Docker image (this will use the Dockerfile in the root of the repo)
