@@ -22,6 +22,7 @@ type USSDReceiveNotifySoapHeader struct {
 	ServiceId     string `json:"serviceId" xml:"serviceId"`
 	TimeStamp     string `json:"timeStamp" xml:"timeStamp"`
 	TraceUniqueId string `json:"traceUniqueID" xml:"traceUniqueID"`
+	OperatorID string `json:"OperatorID" xml:"OperatorID"` 
 }
 
 type USSDReceiveHeader struct {

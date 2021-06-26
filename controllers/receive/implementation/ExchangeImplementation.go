@@ -9,6 +9,14 @@ import (
 	"ussd-router/entities/exchange"
 )
 
+
+var networkMap = map[string]string{
+	"0":"unknown",
+	"1": "mtn",
+	"2": "airtel",
+	"3":"glo",
+	"4": "9mobile",
+}
 var messageTypeMap = map[string]string{
 	"0": "begin",
 	"1": "continue",
@@ -58,8 +66,10 @@ func (request *ExchangeReceiveImplementation) Process(byteData []byte) (error, *
 		CodeScheme:    ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.CodeScheme,
 		SessionId:     ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.SenderCB,
 		Reference:     ussdReceive.Header.NotifySoapHeader.TraceUniqueId,
+		Network: networkMap[ussdReceive.Header.NotifySoapHeader.OperatorID],
 		OperationType: operationTypeMap[ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.UssdOpType],
 	}
+	fmt.Println("Default Data From exchange", response)
 	if response.MessageType == "begin" {
 		fmt.Println("Begin USSD")
 		response.ServiceCode = strings.TrimPrefix(ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.USSDString, "*")

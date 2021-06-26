@@ -23,6 +23,7 @@ func USSDReceiveHandler(c echo.Context) error {
 	//validate request payload based on provider request data
 	var body []byte
 	body, err := ioutil.ReadAll(c.Request().Body)
+	fmt.Println("USSDReceiveHandler body", string(body))
 	if err != nil {
 		return utils.ValidationResponse(c, err.Error())
 	}
