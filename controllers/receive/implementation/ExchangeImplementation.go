@@ -85,6 +85,7 @@ func (request *ExchangeReceiveImplementation) Process(byteData []byte) (error, *
 }
 
 func (request *ExchangeReceiveImplementation) ResolveClientResponse(c echo.Context, byteData []byte) error {
+	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextXML)
 	return c.XML(200, &exchange.USSDReceiveResponsePayload{
 		XmlNS:   "http://schemas.xmlsoap.org/soap/envelope/",
 		XmlNLoc: "http://www.csapi.org/schema/parlayx/ussd/notification/v1_0/local",
