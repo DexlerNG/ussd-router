@@ -12,18 +12,20 @@ import (
 	"time"
 	"ussd-router/entities/exchange"
 	"ussd-router/services"
+	"ussd-router/utils"
 )
 
 type ExchangeConfiguration struct {
-	SpId             string `json:"spId"`
-	SpPassword       string `json:"spPassword"`
-	ServiceId        string `json:"serviceId"`
-	Provider         string `json:"provider"`
-	ProductName      string `json:"productName"`
-	AccessCode       string `json:"accessCode"`
-	CallbackURL      string `json:"callbackURL"`
-	ConfigurationURL string `json:"configurationURL"`
-	SendUSSDURL      string `json:"sendUSSDURL"`
+	SpId                 string `json:"spId"`
+	SpPassword           string `json:"spPassword"`
+	ServiceId            string `json:"serviceId"`
+	Provider             string `json:"provider"`
+	ProductName          string `json:"productName"`
+	AccessCode           string `json:"accessCode"`
+	CallbackURL          string `json:"callbackURL"`
+	Network              string `json:"network"`
+	ConfigurationBaseURL string `json:"configurationURL"`
+	SendUSSDURL          string `json:"sendUSSDURL"`
 }
 
 func (request *ExchangeConfiguration) Validate() error {
@@ -34,6 +36,9 @@ func (request *ExchangeConfiguration) Validate() error {
 		validation.Field(&request.ProductName, validation.Required),
 		validation.Field(&request.AccessCode, validation.Required),
 		validation.Field(&request.ServiceId, validation.Required),
+		validation.Field(&request.Network, validation.Required),
+		validation.Field(&request.ConfigurationBaseURL, is.URL, validation.Required),
+		validation.Field(&request.SendUSSDURL, is.URL, validation.Required),
 	)
 }
 func (request *ExchangeConfiguration) IngestByte(byteData []byte) error {
@@ -45,7 +50,7 @@ func (request *ExchangeConfiguration) IngestByte(byteData []byte) error {
 	return nil
 }
 
-func (request *ExchangeConfiguration) Process() error {
+func (request *ExchangeConfiguration) Process() (error, map[string]string) {
 
 	timestamp := time.Now().Format("20060102150405")
 	md5Sum := md5.Sum([]byte(request.SpId + request.SpPassword + timestamp))
@@ -67,7 +72,7 @@ func (request *ExchangeConfiguration) Process() error {
 		Body: exchange.SUDBody{
 			SUDBodyStartUSSDNotification: exchange.SUDBodyStartUSSDNotification{
 				Reference: exchange.SUDBodyStartUSSDNotificationReference{
-					Endpoint:      os.Getenv("APP_PROXY_BASE_URL") + "/v1/receive/exchange",
+					Endpoint:      os.Getenv("APP_PROXY_BASE_URL") + "/v1/receive/exchange/" + request.Network,
 					InterfaceName: request.ProductName,
 					Correlator:    request.AccessCode,
 				},
@@ -81,11 +86,16 @@ func (request *ExchangeConfiguration) Process() error {
 	if err != nil {
 		// do error check
 		fmt.Println(err)
-		return err
+		return err, nil
 	}
 	fmt.Println(err)
 	fmt.Printf("%+v\n", string(soapBody))
 
-	err, _ = services.ExchangeAggregatorRegisterUSSDEndpoint(os.Getenv("EXCHANGE_ENDPOINT_USSD_BASE_URL"), soapBody)
-	return nil
+	err, _ = services.ExchangeAggregatorRegisterUSSDEndpoint(request.ConfigurationBaseURL, soapBody)
+	if err != nil {
+		// do error check
+		fmt.Println(err)
+		return err, nil
+	}
+	return nil, utils.StructToMapString(request)
 }

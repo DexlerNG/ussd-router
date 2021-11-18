@@ -9,13 +9,7 @@ import (
 	"sync"
 )
 
-const CHARGE_AUTHORIZATION_PROCESSING_QUEUE = "telco-subscribe-billing.authorization.processing"
-const SUBSCRIPTION_PROCESSING_QUEUE = "telco-subscribe-billing.subscribe.processing"
-const DATA_SYNC_PROCESSING_QUEUE = "telco-subscribe-billing.data-sync.processing"
-const CHARGE_PROCESSING_QUEUE = "telco-subscribe-billing.charge.processing"
-const DEFAULT_EXCHANGE = "subscription-billing-engine.exchange"
 const DEAD_LETTER_QUEUE = "telco-subscribe-billing.incoming.dead.letter"
-
 
 
 var channel *amqp.Channel
@@ -43,42 +37,6 @@ func GetRabbitMQClient() *amqp.Channel {
 		}
 		channel = createdChannel
 		connection = createdConnection
-		//init Queues and Exchanges
-		//err = channel.ExchangeDeclare(".exchange", "fanout", true, false, false, false, nil)
-		//if err != nil {
-		//	fmt.Println("Error Creating exchange", err)
-		//}
-
-		queue, err := channel.QueueDeclare(CHARGE_AUTHORIZATION_PROCESSING_QUEUE, true, false, false, false, nil)
-		fmt.Println("Queue", queue)
-		if err != nil {
-			fmt.Println("Error Creating Queue: CHARGE_AUTHORIZATION_PROCESSING_QUEUE", err)
-		}
-
-		queue, err = channel.QueueDeclare(CHARGE_PROCESSING_QUEUE, true, false, false, false, nil)
-		fmt.Println("Queue", queue)
-		if err != nil {
-			fmt.Println("Error Creating Queue: CHARGE_PROCESSING_QUEUE", err)
-		}
-
-		queue, err = channel.QueueDeclare(SUBSCRIPTION_PROCESSING_QUEUE, true, false, false, false, nil)
-		fmt.Println("Queue", queue)
-		if err != nil {
-			fmt.Println("Error Creating Queue: SUBSCRIPTION_PROCESSING_QUEUE", err)
-		}
-
-
-		queue, err = channel.QueueDeclare(DATA_SYNC_PROCESSING_QUEUE, true, false, false, false, nil)
-		fmt.Println("Queue", queue)
-		if err != nil {
-			fmt.Println("Error Creating Queue: DATA_SYNC_PROCESSING_QUEUE", err)
-		}
-
-
-		err = channel.ExchangeDeclare(DEFAULT_EXCHANGE, "fanout", true, false, false, false, nil)
-		if err != nil {
-			fmt.Println("Error Creating Exchange: DEFAULT_EXCHANGE", err)
-		}
 	})
 	//fmt.Println("channel", channel)
 	return channel
@@ -106,7 +64,7 @@ func RabbitMQPublishToExchange(exchangeName string, data interface{}) error {
 func RabbitMQPublishToQueue(queueName string, data interface{}) error {
 
 	jsonPayload, _ := json.Marshal(data)
-	//fmt.Println("QueuePayload", jsonPayload)
+	//fmt.Println("QueuePayload", jsonPayload, queueName)
 	message := amqp.Publishing{
 		Body: []byte(string(jsonPayload)),
 	}

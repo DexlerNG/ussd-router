@@ -4,24 +4,33 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"strings"
 	"ussd-router/entities"
 	"ussd-router/entities/exchange"
 )
 
+
+var networkMap = map[string]string{
+	"0":"unknown",
+	"1": "mtn",
+	"2": "airtel",
+	"3":"glo",
+	"4": "9mobile",
+}
 var messageTypeMap = map[string]string{
-	"0":  "begin",
+	"0": "begin",
 	"1": "continue",
 	"2": "end",
 }
 var operationTypeMap = map[string]string{
-	"1":  "request",
+	"1": "request",
 	"2": "notify",
 	"3": "response",
 	"4": "release",
 }
 
 type ExchangeReceiveImplementation struct {
-	Payload  exchange.USSDReceivePayload `json:"payload"`
+	Payload exchange.USSDReceivePayload `json:"payload"`
 }
 
 func (request *ExchangeReceiveImplementation) Validate() error {
@@ -46,36 +55,41 @@ func (request *ExchangeReceiveImplementation) Process(byteData []byte) (error, *
 		return err, nil
 	}
 
-	fmt.Println("USSD Receive From Exchange", ussdReceive)
-	return nil, &entities.GenericUSSDReceivePayload{
-		Provider: "exchange",
-		MessageType: messageTypeMap[ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.MsgType],
-		SpId: ussdReceive.Header.NotifySoapHeader.SpId,
-		ServiceId: ussdReceive.Header.NotifySoapHeader.ServiceId,
-		Timestamp: ussdReceive.Header.NotifySoapHeader.TimeStamp,
-		USSDString: ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.USSDString,
-		Msisdn: ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.Msisdn,
-		CodeScheme: ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.CodeScheme,
-		SessionId: ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.SenderCB,
-		Reference: ussdReceive.Header.NotifySoapHeader.TraceUniqueId,
-		AccessCode: ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode,
+	response := &entities.GenericUSSDReceivePayload{
+		Provider:      "exchange",
+		MessageType:   messageTypeMap[ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.MsgType],
+		SpId:          ussdReceive.Header.NotifySoapHeader.SpId,
+		ServiceId:     ussdReceive.Header.NotifySoapHeader.ServiceId,
+		Timestamp:     ussdReceive.Header.NotifySoapHeader.TimeStamp,
+		USSDString:    ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.USSDString,
+		Msisdn:        ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.Msisdn,
+		CodeScheme:    ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.CodeScheme,
+		SessionId:     ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.SenderCB,
+		Reference:     ussdReceive.Header.NotifySoapHeader.TraceUniqueId,
+		Network: networkMap[ussdReceive.Header.NotifySoapHeader.OperatorID],
 		OperationType: operationTypeMap[ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.UssdOpType],
 	}
+	fmt.Println("Default Data From exchange", response)
+	if response.MessageType == "begin" {
+		fmt.Println("Begin USSD")
+		response.ServiceCode = strings.TrimPrefix(ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.USSDString, "*")
+		response.ServiceCode = strings.TrimSuffix(response.ServiceCode, "#")
+		response.AccessCode = response.ServiceCode
+		fmt.Println("Service Code on Begin", response.ServiceCode)
+	} else {
+		response.AccessCode = ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode
+		response.ServiceCode = ussdReceive.Body.USSDReceiveNotifyUSSDReceptionBody.ServiceCode
+	}
+	fmt.Println("USSD Receive From Exchange", ussdReceive)
+	return nil, response
 }
 
-
 func (request *ExchangeReceiveImplementation) ResolveClientResponse(c echo.Context, byteData []byte) error {
-
-//	soapResponse, _ := xml.Marshal(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:loc="http://www.csapi.org/schema/parlayx/ussd/notification/v1_0/local">
-//   <soapenv:Header/>
-//   <soapenv:Body>
-//<loc:notifyUssdReceptionResponse> <loc:result>0</loc:result>
-//</loc:notifyUssdReceptionResponse> </soapenv:Body>
-//</soapenv:Envelope>`)
+	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextXML)
 	return c.XML(200, &exchange.USSDReceiveResponsePayload{
-		XmlNS: "http://schemas.xmlsoap.org/soap/envelope/",
+		XmlNS:   "http://schemas.xmlsoap.org/soap/envelope/",
 		XmlNLoc: "http://www.csapi.org/schema/parlayx/ussd/notification/v1_0/local",
-		Header: exchange.USSDReceiveResponseHeader{},
+		Header:  exchange.USSDReceiveResponseHeader{},
 		Body: exchange.USSDReceiveResponseBody{
 			USSDReceiveNotifyUSSDReceptionBody: exchange.USSDReceiveNotifyUSSDdReceptionResponse{
 				Result: "0",
@@ -83,5 +97,3 @@ func (request *ExchangeReceiveImplementation) ResolveClientResponse(c echo.Conte
 		},
 	})
 }
-
-
