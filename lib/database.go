@@ -1,4 +1,4 @@
-package startups
+package lib
 
 import (
 	"context"
@@ -15,9 +15,9 @@ var client *mongo.Client
 
 
 func GetMongoClient() *mongo.Client {
-	println("Calling .Once ......", os.Getenv("MONGODB_URL") != "")
+	log.Println("Calling .Once ......", os.Getenv("MONGODB_URL") != "")
 	connectOnce.Do(func() {
-		println("Connecting to Mongodb......")
+		log.Println("Connecting to Mongodb......")
 		data, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(os.Getenv("MONGODB_URL")))
 		if err != nil {
 			panic(err)
@@ -26,10 +26,10 @@ func GetMongoClient() *mongo.Client {
 		if err != nil {
 			log.Fatalf("Exit error Ping: %v", err)
 		}
-		println("Connected to mongo....")
+		log.Println("Connected to mongo....")
 		client  = data
 	})
-	println("client", client)
+	log.Println("client", client)
 	return client
 }
 

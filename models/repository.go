@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"math"
-	"ussd-router/startups"
+	"ussd-router/lib"
 	"ussd-router/utils"
 )
 
@@ -97,5 +97,5 @@ func FindOne(collection string, query map[string]string, model interface{}) (err
 	return nil, model
 }
 func GetCollection(collection string) *mongo.Collection {
-	return startups.GetMongoDatabase().Collection(collection)
+	return lib.GetMongoDatabase().Collection(collection)
 }

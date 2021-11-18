@@ -8,8 +8,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"io/ioutil"
 	"time"
+	redis "ussd-router/lib/cache"
 	"ussd-router/models"
-	redis "ussd-router/startups/cache"
 	"ussd-router/utils"
 )
 

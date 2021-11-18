@@ -3,19 +3,21 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/blackhades/go-amqp-lib/rabbitmq"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 	"ussd-router/controllers"
 	"ussd-router/controllers/configuration"
 	"ussd-router/controllers/receive"
 	"ussd-router/controllers/send"
-	"ussd-router/startups"
-	redis "ussd-router/startups/cache"
-	"ussd-router/startups/queues"
+	"ussd-router/lib"
+	redis "ussd-router/lib/cache"
+	"ussd-router/lib/queues"
 )
 
 func customHTTPErrorHandler(err error, c echo.Context) {
@@ -82,12 +84,22 @@ func main() {
 	}))
 	e.HTTPErrorHandler = customHTTPErrorHandler
 
-	client := startups.GetMongoClient()
+	client := lib.GetMongoClient()
 	defer client.Disconnect(context.Background())
 
 	redis.GetRedisClient()
-	queues.GetRabbitMQClient()
-	defer queues.GetRabbitMQConnection().Close()
+
+	queues.Init()
+
+	prefetch, err := strconv.Atoi(os.Getenv("QUEUE_PREFETCH"))
+	if err != nil {
+		prefetch = 1
+	}
+
+	rabbitmq.Listen(map[string]rabbitmq.GenericFN{
+	}, prefetch)
+
+	defer rabbitmq.GetConnection().Close()
 
 
 	requestLoggerQueueName := "elasticsearch.single.runner"
@@ -112,7 +124,7 @@ func main() {
 
 			//jsonValue, _ := json.Marshal(logData)
 			//fmt.Println("Request Body", string(jsonValue))
-			err = queues.RabbitMQPublishToQueue(requestLoggerQueueName, map[string]interface{}{
+			err = rabbitmq.PublishToQueue(requestLoggerQueueName, map[string]interface{}{
 				"index": requestLoggerIndexName,
 				"data":  logData,
 			})
